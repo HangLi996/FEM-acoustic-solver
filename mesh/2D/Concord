@@ -1,0 +1,44 @@
+// Gmsh project created on Thu May 26 09:57:40 2016
+
+Point(7) = {-4, 0.5, 0, 1.0};
+Point(8) = {-4, 0, 0, 1.0};
+Point(10) = {-6, 0.25, 0, 1.0};
+Point(3) = {2, 0.5, 0, 1.0};
+Point(4) = {2, 0, -0, 1.0};
+Point(6) = {3.5, 0.25, 0, 1.0};
+
+Line(5) = {3, 6};
+Line(6) = {6, 4};
+Line(7) = {4, 3};
+Line(8) = {7, 3};
+Line(9) = {4, 8};
+Line(10) = {8, 7};
+Line(11) = {7, 10};
+Line(12) = {10, 8};
+Point(11) = {2, -2, 0, 1.0};
+Point(12) = {-0.9, -0.9, 0, 1.0};
+Point(16) = {0.2, -1.7, 0, 1.0};
+
+BSpline(13) = {8, 12, 16, 11};
+Line(14) = {4, 11};
+Point(15) = {-0.9, 1.4, 0, 1.0};
+
+Point(17) = {2, 2.5, 0, 1.0};
+Point(18) = {0.2, 2.2, 0, 1.0};
+Line(15) = {17, 3};
+BSpline(16) = {7, 15, 18, 17};
+
+Line Loop(17) = {11, 12, 10};
+Plane Surface(18) = {17};
+Line Loop(19) = {10, 8, -7, 9};
+Plane Surface(20) = {19};
+Line Loop(21) = {5, 6, 7};
+Plane Surface(22) = {21};
+Line Loop(23) = {15, -8, 16};
+Plane Surface(24) = {23};
+Line Loop(25) = {9, 13, -14};
+Plane Surface(26) = {25};
+
+Transfinite Line "*" = 15 Using Bump 1;
+Transfinite Surface "*";
+Recombine Surface "*";
