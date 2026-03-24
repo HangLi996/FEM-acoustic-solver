@@ -10,12 +10,12 @@
 
 - **网格与边界**：读入 Gmsh 网格（`msh2mat`），识别边界节点与物理边（`getBoundary`），用于施加 Dirichlet / Neumann 等声学边界条件。
 - **全局矩阵**：用标准形函数与高斯积分组装**刚度矩阵 `K`**（梯度项）与**质量矩阵 `M`**（质量项），得到稀疏结构一致的有限元系统。
-- **模态分析**：求解 \( \mathbf{K}\boldsymbol{\phi} = k^2 \mathbf{M}\boldsymbol{\phi} \)，输出各阶固有频率与压力振型。
-- **频域谐波分析**：在点声源激励下求解 \( (\mathbf{K} - k^2\mathbf{M})\mathbf{p} = \mathbf{f} \)，扫频得到频响，并在指定频率下可视化声压幅值、相位与 SPL。默认脚本 `run_frequency_response.m` 将**目标位置**设为 \([1.7,\,0]\,\mathrm{m}\)（约沿管长方向中部），在**排除边界节点**后取与该目标最近的**内部节点**施加体积速度载荷（`addAcousticSource`），因此声源在**计算域内部**，不在网格外「域外」；若最近节点落在边界上会触发警告。
+- **模态分析**：求解 $\mathbf{K}\boldsymbol{\phi} = k^2 \mathbf{M}\boldsymbol{\phi}$，输出各阶固有频率与压力振型。
+- **频域谐波分析**：在点声源激励下求解 $(\mathbf{K} - k^2\mathbf{M})\mathbf{p} = \mathbf{f}$，扫频得到频响，并在指定频率下可视化声压幅值、相位与 SPL。默认脚本 `run_frequency_response.m` 将**目标位置**设为 $[1.7,\,0]\,\mathrm{m}$（约沿管长方向中部），在**排除边界节点**后取与该目标最近的**内部节点**施加体积速度载荷（`addAcousticSource`），因此声源在**计算域内部**，不在网格外「域外」；若最近节点落在边界上会触发警告。
 
 默认演示采用 **`mesh/duct/`** 管道算例（如 `duct4l.msh`）：矩形截面、硬壁边界与上述内部点源，便于观察纵模共振与近共振频率下的强响应。仓库内另有 **`mesh/2D/`** 多种几何，可在入口脚本中替换 `file.mesh` 做扩展实验。
 
-**duct 算例 — 计算网格与边界标记**（节点编号、单元编号与边界段 \(\Gamma_i\) 示意）：
+**duct 算例 — 计算网格与边界标记**（节点编号、单元编号与边界段 $\Gamma_i$ 示意）：
 
 ![duct 算例：网格与边界](duct算例结果图/网格图.png)
 
@@ -25,31 +25,25 @@
 
 ### 控制方程（频域 Helmholtz）
 
-无源区域内时谐声压幅值 \(p\) 满足：
+无源区域内时谐声压幅值 $p$ 满足：
 
-\[
-\nabla^2 p + k^2 p = 0,\quad k = \omega/c .
-\]
+$$\nabla^2 p + k^2 p = 0,\quad k = \omega/c .$$
 
 伽辽金弱式离散后得到代数形式：
 
-\[
-(\mathbf{K} - k^2 \mathbf{M})\mathbf{p} = \mathbf{f},
-\]
+$$(\mathbf{K} - k^2 \mathbf{M})\mathbf{p} = \mathbf{f},$$
 
-其中 \(\mathbf{K}\) 对应 \(\int \nabla N_a \cdot \nabla N_b \,\mathrm{d}\Omega\)，\(\mathbf{M}\) 对应 \(\int N_a N_b \,\mathrm{d}\Omega\)（实现见 `computeElementMatrices.m`）。
+其中 $\mathbf{K}$ 对应 $\int \nabla N_a \cdot \nabla N_b \,\mathrm{d}\Omega$，$\mathbf{M}$ 对应 $\int N_a N_b \,\mathrm{d}\Omega$（实现见 `computeElementMatrices.m`）。
 
 ### 模态分析
 
 齐次问题退化为广义特征值问题：
 
-\[
-\mathbf{K}\boldsymbol{\phi} = k^2 \mathbf{M}\boldsymbol{\phi},
-\]
+$$\mathbf{K}\boldsymbol{\phi} = k^2 \mathbf{M}\boldsymbol{\phi},$$
 
-由 \(k\) 与声速 \(c\) 得固有频率 \(f = k c / (2\pi)\)（`solveEigenvalueProblem.m`）。
+由 $k$ 与声速 $c$ 得固有频率 $f = k c / (2\pi)$（`solveEigenvalueProblem.m`）。
 
-**全局矩阵稀疏结构**：组装后的 \(\mathbf{K}\)、\(\mathbf{M}\) 为稀疏矩阵；下图用 `spy` 展示非零元分布（同一连通模式下两矩阵结构一致）。
+**全局矩阵稀疏结构**：组装后的 $\mathbf{K}$、$\mathbf{M}$ 为稀疏矩阵；下图用 `spy` 展示非零元分布（同一连通模式下两矩阵结构一致）。
 
 ![刚度矩阵 K 与质量矩阵 M 的稀疏模式](duct算例结果图/稀疏矩阵.png)
 
@@ -61,9 +55,9 @@
 
 ### 边界条件与激励
 
-- **硬边界**：Dirichlet \(p=0\)（`applyBoundaryConditions.m`，类型 `'hard'`）。
+- **硬边界**：Dirichlet $p=0$（`applyBoundaryConditions.m`，类型 `'hard'`）。
 - **软边界**：Neumann 自然边界（`'soft'`）。
-- **点声源**：载荷向量在最近内部节点上施加（`addAcousticSource.m`），强度与 \(\rho,\omega,Q\) 相关。
+- **点声源**：载荷向量在最近内部节点上施加（`addAcousticSource.m`），强度与 $\rho,\omega,Q$ 相关。
 
 ### 单元与数值积分
 
@@ -89,10 +83,10 @@
 
 | 环节 | 说明 |
 |------|------|
-| **组装** | `assembleGlobalMatrices` 对每个单元调用 `computeElementMatrices`，复杂度约 **\(O(N_{\mathrm{el}})\)**；入口脚本打印 `tic/toc` 与 \(\mathbf{K},\mathbf{M}\) 尺寸。 |
+| **组装** | `assembleGlobalMatrices` 对每个单元调用 `computeElementMatrices`，复杂度约 **$O(N_{\mathrm{el}})$**；入口脚本打印 `tic/toc` 与 $\mathbf{K},\mathbf{M}$ 尺寸。 |
 | **稀疏度** | `run_eigen_modes.m` 可输出 `nnz(K)`、`nnz(M)` 占满阵比例，用于估计存储与求解成本。 |
 | **特征求解** | `solveEigenvalueProblem` 优先 `eigs(K,M,...,'smallestabs')`；失败时回退 `eig(full(K),full(M))`（**仅适用于小规模**）。 |
-| **频扫** | `computeFrequencyResponse` 对每个频率构造 \(\mathbf{A}=\mathbf{K}-k^2\mathbf{M}\) 并求解，复杂度约 **\(O(N_{\mathrm{freq}} \cdot \mathrm{cost}(\mathbf{A}^{-1}\mathbf{f}))\)**。 |
+| **频扫** | `computeFrequencyResponse` 对每个频率构造 $\mathbf{A}=\mathbf{K}-k^2\mathbf{M}$ 并求解，复杂度约 **$O(N_{\mathrm{freq}} \cdot \mathrm{cost}(\mathbf{A}^{-1}\mathbf{f}))$**。 |
 
 **duct 默认网格**（`duct4l.msh`）自由度适中，适合作为桌面演示；更细网格或大规模二维问题应选用合适的稀疏直接法/迭代法并关注内存。
 
